@@ -94,3 +94,15 @@ if (legend) legend.textContent = "move: ZQSD / WASD / arrows";
     '@media (orientation:landscape) and (pointer:coarse) and (min-aspect-ratio:960/520){#game{width:auto;height:100%}}';
   document.head.append(viewportStyle);
 })();
+
+
+/* Bridge for the complete mobile controls. */
+(() => {
+  if (!matchMedia('(pointer:coarse)').matches) return;
+  window.touchVector = {x:0,y:0};
+  const joy=document.querySelector('#joystick'),stick=document.querySelector('#stick');
+  if (!joy || !stick) return;
+  const set=(e)=>{const r=joy.getBoundingClientRect(),x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2,l=r.width*.28,n=Math.hypot(x,y)||1,k=Math.min(1,l/n);window.touchVector={x:x*k/l,y:y*k/l};stick.style.transform='translate('+x*k+'px,'+y*k+'px)'};
+  const reset=()=>{window.touchVector={x:0,y:0};stick.style.transform='translate(0,0)'};
+  joy.addEventListener('pointerdown',e=>{joy.setPointerCapture(e.pointerId);set(e)});joy.addEventListener('pointermove',e=>joy.hasPointerCapture(e.pointerId)&&set(e));joy.addEventListener('pointerup',reset);joy.addEventListener('pointercancel',reset);
+})();
