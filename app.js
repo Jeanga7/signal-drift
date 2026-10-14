@@ -51,3 +51,24 @@ const help = overlay.querySelector("p:not(.eyebrow)");
 if (help) help.innerHTML = "Use <kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> or arrows. WASD also works. On mobile, drag inside the field.";
 const legend = document.querySelector(".console-bottom span:last-child");
 if (legend) legend.textContent = "move: ZQSD / WASD / arrows";
+
+
+/* Mobile arcade mode: landscape, joystick, inertia, dash and waves. */
+(() => {
+  const mobile = matchMedia("(pointer:coarse)").matches;
+  if (!mobile) return;
+  canvas.style.pointerEvents = "none";
+  const gate = document.createElement("aside");
+  gate.className = "mobile-gate";
+  gate.innerHTML = "<b>▭</b><small>SIGNAL DRIFT / MOBILE</small><h2>Rotate your device.</h2><p>Landscape gives you the room to steer and dash.</p>";
+  document.body.append(gate);
+  const style = document.createElement("style");
+  style.textContent = `.mobile-gate{display:none}@media (orientation:portrait) and (pointer:coarse){.mobile-gate{position:fixed;z-index:99;inset:0;display:grid;place-content:center;justify-items:center;padding:32px;text-align:center;background:#07131f;color:#eaf5f3}.mobile-gate b{font-size:64px;color:#66ead8;transform:rotate(90deg)}.mobile-gate small{margin-top:22px;color:#66ead8;font:10px DM Mono;letter-spacing:.12em}.mobile-gate h2{margin:12px 0;font:600 42px Space Grotesk;letter-spacing:-.06em}.mobile-gate p{max-width:270px;color:#92a7ae}}@media (orientation:landscape) and (pointer:coarse){.intro,footer,.console-bottom{display:none}.game-shell{width:100%;min-height:100dvh;padding:8px 12px}.topbar{height:30px}.console{height:calc(100dvh - 44px)}.console-top{min-height:44px;padding:7px 12px}.game-frame{height:calc(100% - 44px);min-height:0;aspect-ratio:auto}.boost{background:#39a5ff!important}.boost::after{content:"DASH";font:9px DM Mono;color:#fff}.boost{font-size:0!important}}`;
+  document.head.append(style);
+  let vx=0,vy=0,lastX=1,lastY=0,dashReady=0,dashUntil=0,grabbed=0,points=0,combo=0,last=0;
+  const oldReset=reset; reset=function(){oldReset();vx=vy=0;points=combo=0;last=0;dashReady=0;mission.textContent="WAVE 1 · 0 / 12"};
+  function mobileStep(){if(running&&!paused){const n=Math.hypot(touchVector.x,touchVector.y);if(n){lastX=touchVector.x/n;lastY=touchVector.y/n;vx+=lastX*.72;vy+=lastY*.72}const max=performance.now()<dashUntil?16:5.3,m=Math.hypot(vx,vy);if(m>max){vx=vx/m*max;vy=vy/m*max}player.x+=vx;player.y+=vy;vx*=.87;vy*=.87;player.x=Math.max(player.r,Math.min(W-player.r,player.x));player.y=Math.max(player.r,Math.min(H-player.r,player.y));trail.push({x:player.x,y:player.y,a:1});if(trail.length>32)trail.shift();trail.forEach(t=>t.a*=.94);noise.forEach(n=>{n.x+=n.vx*1.18;n.y+=n.vy*1.18;if(n.x<n.r||n.x>W-n.r)n.vx*=-1;if(n.y<n.r||n.y>H-n.r)n.vy*=-1});packets.forEach((p,i)=>{if(dist(player,p)<player.r+p.r+3){packets.splice(i,1);grabbed++;const now=performance.now();combo=now-last<2300?Math.min(combo+1,5):1;last=now;points+=combo;scoreEl.textContent=String(points).padStart(3,"0");mission.textContent=`WAVE ${Math.ceil(grabbed/4)||1} · ${grabbed} / 12 · x${combo}`;buzz(8)}});for(const n of noise)if(dist(player,n)<player.r+n.r){buzz([28,35,60]);end("Signal lost.","A noisy node broke the route. Score: "+points+".");break}if(grabbed>=12){best=Math.max(best,points);localStorage.setItem("signal-drift-best",best);bestEl.textContent=String(best).padStart(3,"0");end("Route completed.","Twelve packets delivered. Final chain: x"+combo+".")}spawn()}draw();requestAnimationFrame(step)}
+  step=mobileStep;
+  boost.onclick=()=>{if(!running||paused||performance.now()<dashReady)return;dashUntil=performance.now()+220;dashReady=performance.now()+1350;vx=lastX*16;vy=lastY*16;buzz(14)};
+  start.onclick=()=>{begin();document.documentElement.requestFullscreen?.().catch(()=>{});screen.orientation?.lock?.("landscape").catch(()=>{})};
+})();
