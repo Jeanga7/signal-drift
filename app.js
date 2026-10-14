@@ -72,3 +72,25 @@ if (legend) legend.textContent = "move: ZQSD / WASD / arrows";
   boost.onclick=()=>{if(!running||paused||performance.now()<dashReady)return;dashUntil=performance.now()+220;dashReady=performance.now()+1350;vx=lastX*16;vy=lastY*16;buzz(14)};
   start.onclick=()=>{begin();document.documentElement.requestFullscreen?.().catch(()=>{});screen.orientation?.lock?.("landscape").catch(()=>{})};
 })();
+
+
+/* Full-bleed mobile viewport: preserve the  game’s ratio and remove browser-page chrome. */
+(() => {
+  if (!matchMedia('(pointer: coarse)').matches) return;
+  const viewportStyle = document.createElement('style');
+  viewportStyle.textContent =     'html,body{width:100%;min-height:100%;overflow:hidden;overscroll-behavior:none}' +
+    '@media (orientation:landscape) and (pointer:coarse){' +
+      'body{background:#041522}' +
+      '.game-shell{width:100%;height:100dvh;min-height:100svh;padding:0}' +
+      '.topbar,.intro,footer,.console-bottom{display:none!important}' +
+      '.console{width:100%;height:100%;border:0;border-radius:0;background:#041522;box-shadow:none}' +
+      '.console-top{position:absolute;z-index:8;top:max(7px,env(safe-area-inset-top));left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));min-height:0;padding:7px 10px;border:1px solid rgba(167,232,224,.14);border-radius:10px;background:rgba(4,20,31,.72);backdrop-filter:blur(10px)}' +
+      '.console-top>div:first-child{margin-right:auto}' +
+      '.game-frame{width:100%;height:100%;min-height:0;display:grid;place-items:center;background:#041522}' +
+      '#game{position:relative;width:100%;height:auto;max-width:100%;max-height:100%;aspect-ratio:960/520;object-fit:contain}' +
+      '.game-frame:before{z-index:1}' +
+      '.mobile-controls{z-index:9;left:max(18px,env(safe-area-inset-left));right:max(18px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom))}' +
+    '}' +
+    '@media (orientation:landscape) and (pointer:coarse) and (min-aspect-ratio:960/520){#game{width:auto;height:100%}}';
+  document.head.append(viewportStyle);
+})();
