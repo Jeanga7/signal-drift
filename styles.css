@@ -25,3 +25,14 @@
   footer { flex-direction: column; margin: 18px 12px 0; font-size: 11px; }
   .live { font-size: 9px; }
 }
+
+
+/* Fullscreen: the game becomes the whole application surface. */
+.fullscreen-button { display:grid; width:34px; height:34px; margin:0 0 0 4px; padding:0; place-items:center; border:1px solid rgba(102,234,216,.3); border-radius:8px; background:rgba(102,234,216,.06); color:var(--paper); font:500 19px/1 "DM Mono"; }
+:fullscreen { background:var(--ink); }
+:fullscreen .game-shell { width:min(100%,1500px); height:100dvh; padding:12px; }
+:fullscreen .intro, :fullscreen footer { display:none; }
+:fullscreen .topbar { height:46px; padding:0 8px; }
+:fullscreen .console { height:calc(100dvh - 70px); }
+:fullscreen .game-frame { height:calc(100% - 94px); min-height:0; aspect-ratio:auto; }
+@media (max-width:620px) { .fullscreen-button { width:32px; height:32px; margin-left:0; font-size:17px; } :fullscreen .game-shell { padding:8px; } :fullscreen .console { height:calc(100dvh - 58px); } :fullscreen .game-frame { height:calc(100% - 82px); } }
