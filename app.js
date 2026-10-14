@@ -13,3 +13,41 @@ function step(){if(running){let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.a
 function dot(x,y,r,c,a=1){ctx.globalAlpha=a;ctx.fillStyle=c;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1}
 function draw(){ctx.clearRect(0,0,W,H);for(let i=0;i<45;i++){let x=(i*137)%W,y=(i*83)%H;dot(x,y,1,'#255466',.55)}trail.forEach((t,i)=>dot(t.x,t.y,Math.max(1,player.r*(i/trail.length)*.7),'#66ead8',t.a*.55));packets.forEach(p=>{let pulse=Math.sin(performance.now()/600+p.phase)*2;ctx.strokeStyle='#66ead8';ctx.globalAlpha=.3;ctx.beginPath();ctx.arc(p.x,p.y,p.r+7+pulse,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;dot(p.x,p.y,p.r,'#66ead8');dot(p.x-2,p.y-2,2,'#eafffb')});noise.forEach(n=>{ctx.strokeStyle='rgba(255,110,118,.55)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(n.x,n.y,n.r+5,0,Math.PI*2);ctx.stroke();dot(n.x,n.y,n.r,'#ff6e76',.24);dot(n.x,n.y,4,'#ff6e76')});ctx.shadowBlur=18;ctx.shadowColor='#39a5ff';dot(player.x,player.y,player.r,'#53b5ff');dot(player.x-3,player.y-3,3,'#ecffff');ctx.shadowBlur=0;}
 step();
+
+
+// Ergonomic controls: AZERTY first, with WASD kept as a fallback.
+addEventListener("keydown", (event) => {
+  const alias = { q: "a", z: "w" }[event.key.toLowerCase()];
+  if (alias) keys[alias] = true;
+});
+addEventListener("keyup", (event) => {
+  const alias = { q: "a", z: "w" }[event.key.toLowerCase()];
+  if (alias) keys[alias] = false;
+});
+
+const fullscreenButton = document.createElement("button");
+fullscreenButton.className = "fullscreen-button";
+fullscreenButton.type = "button";
+fullscreenButton.textContent = "⛶";
+fullscreenButton.setAttribute("aria-label", "Play in fullscreen");
+fullscreenButton.title = "Fullscreen";
+document.querySelector(".console-top").append(fullscreenButton);
+
+function syncFullscreenButton() {
+  const active = Boolean(document.fullscreenElement);
+  fullscreenButton.textContent = active ? "×" : "⛶";
+  fullscreenButton.setAttribute("aria-label", active ? "Exit fullscreen" : "Play in fullscreen");
+  fullscreenButton.title = active ? "Exit fullscreen" : "Fullscreen";
+}
+fullscreenButton.onclick = async () => {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  } catch (_) {}
+};
+document.addEventListener("fullscreenchange", syncFullscreenButton);
+
+const help = overlay.querySelector("p:not(.eyebrow)");
+if (help) help.innerHTML = "Use <kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> or arrows. WASD also works. On mobile, drag inside the field.";
+const legend = document.querySelector(".console-bottom span:last-child");
+if (legend) legend.textContent = "move: ZQSD / WASD / arrows";
